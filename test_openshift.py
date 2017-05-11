@@ -1,25 +1,25 @@
 import unittest
-from swarm import SwarmManager
+from openshift import OpenShiftManager
 import docker
 
 
-class SwarmManagerTests(unittest.TestCase):
+class OpenShiftManagerTests(unittest.TestCase):
     """
-    Test the SwarmManager's methods
+    Test the OpenShiftManager's methods
     """
 
     @classmethod
     def setUpClass(cls):
-        # initialize a single-node swarm
+        # initialize a single-node openshift
         cls.docker_client = docker.from_env()
-        cls.docker_client.swarm.init()
+        cls.docker_client.openshift.init()
 
     @classmethod
     def tearDownClass(cls):
-        cls.docker_client.swarm.leave(True)
+        cls.docker_client.openshift.leave(True)
 
     def setUp(self):
-        self.manager = SwarmManager()
+        self.manager = OpenShiftManager()
         self.manager.get_docker_client()
         self.service_name = 'simple_service'
         self.image = 'alpine'
