@@ -48,16 +48,7 @@ class OpenShiftManager(object):
         
     def schedule(self, image, command, name, mountdir=None):
         """
-        Schedule a new service and returns the service object.
-        
-        # 'on-failure' restart_policy ensures that the service will not be rescheduled
-        # when it completes
-        restart_policy = docker.types.RestartPolicy(condition='on-failure')
-        mounts = []
-        if mountdir is not None:
-            mounts.append('%s:/share:rw' % mountdir)
-        return self.openshift_client.services.create(image, command, name=name, mounts=mounts,
-                                                  restart_policy=restart_policy)
+        Schedule a new job and returns the job object.
         """
 
         job = """
@@ -82,26 +73,17 @@ spec:
         resp = self.kube_v1_batch_client.create_namespaced_job(namespace='myproject', body=job_yaml)
 
 
-    def get_service(self, name):
-        """
-        Get a previously scheduled service object.
-        """
-        return self.openshift_client.services.get(name)
-
-    def get_service_container(self, name):
+    def get_job(self, name):
         """
         Get docker container for a previously scheduled service object.
         """
-        return ""
-        #return self.get_service(name).tasks()[0]
+        return self.kube_v1_batch_client.read_namespaced_job(name, 'myproject')
 
     def remove(self, name):
         """
         Remove a previously scheduled service.
-        
-        service = self.get_service(name)
-        service.remove()
         """
+        self.kube_v1_batch_client.delete_namespaced_job(name, 'myproject', {})
     def parse(self, args=None):
         """
         Parse the arguments passed to the manager and perform the appropriate action.
@@ -125,8 +107,8 @@ spec:
             self.remove(options.remove)
 
         if options.state:
-            container = self.get_service_container(options.state)
-            print(json.dumps(container))
+            job = self.get_job(options.state)
+            print(yaml.dump(job))
 
 
 # ENTRYPOINT
