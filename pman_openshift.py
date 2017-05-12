@@ -41,7 +41,10 @@ class OpenShiftManager(object):
         """
         Method to get a OpenShift client connected to remote or local OpenShift.
         """
-        config.load_kube_config()
+        if conf_filepath is None:
+            config.load_kube_config()
+        else:
+            config.load_kube_config(config_file=conf_filepath)
         self.openshift_client = o_client.OapiApi()
         self.kube_client = client.CoreV1Api()
         self.kube_v1_batch_client = client.BatchV1Api()
