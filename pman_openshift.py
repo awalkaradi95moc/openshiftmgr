@@ -7,7 +7,9 @@ from argparse import ArgumentParser
 import configparser
 import json
 import yaml
-from openshift import client, config
+from kubernetes import client
+from openshift import client as o_client
+from openshift import config
 
 
 class OpenShiftManager(object):
@@ -31,13 +33,18 @@ class OpenShiftManager(object):
                             metavar='dir')
         self.parser = parser
         self.openshift_client = None
+        self.kube_client = None
+        self.kube_v1_batch_client = None
 
     def get_openshift_client(self, conf_filepath=None):
         """
         Method to get a OpenShift client connected to remote or local OpenShift.
         """
         config.load_kube_config()
-        self.openshift_client = client.OapiApi()
+        self.openshift_client = o_client.OapiApi()
+        self.kube_client = client.CoreV1Api()
+        self.kube_v1_batch_client = client.BatchV1Api()
+
         
     def schedule(self, image, command, name, mountdir=None):
         """
@@ -52,6 +59,29 @@ class OpenShiftManager(object):
         return self.openshift_client.services.create(image, command, name=name, mounts=mounts,
                                                   restart_policy=restart_policy)
         """
+
+        job = """
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: pman-openshift-job
+spec:
+    parallelism: 1
+    completions: 1
+    template:
+        metadata:
+            name: pman-openshift-job
+        spec:
+            containers:
+            - name: pman-openshift-job
+              image: fedora
+              command: ["ls"]
+            restartPolicy: Never
+"""
+        job_yaml = yaml.load(job)
+        resp = self.kube_v1_batch_client.create_namespaced_job(namespace='myproject', body=job_yaml)
+
+
     def get_service(self, name):
         """
         Get a previously scheduled service object.
