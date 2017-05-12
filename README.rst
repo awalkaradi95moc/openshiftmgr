@@ -11,7 +11,7 @@ The docker image can be run from a openshift manager to schedule a service:
 
 .. code-block:: bash
 
-  docker run --rm -v /root/.kube/config:/root/.kube/config fnndsc/openshift pman_openshift.py -s test -i alpine -c "echo test"
+  docker run --rm -v /root/.kube/config:/root/.kube/config fnndsc/openshift pman_openshift.py -s test -p myproject -i alpine -c "echo test"
 
 This will schedule the ``test`` service that runs command:
 
@@ -28,7 +28,7 @@ The same thing can be accomplished from ``Python`` code:
 
   client = docker.from_env()
   # 'remove' option automatically remove container when finished
-  byte_str = client.containers.run('fnndsc/pman-openshift',  'pman_openshift.py -s test -i alpine -c "echo test"',
+  byte_str = client.containers.run('fnndsc/pman-openshift',  'pman_openshift.py -s test -p myproject -i alpine -c "echo test"',
                                    volumes={'/root/.kube/config': {'bind': '/root/.kube/config', 'mode': 'rw'}},
                                    remove=True)
 
@@ -37,13 +37,13 @@ To remove the ``test`` service:
 
 .. code-block:: bash
 
-  docker run --rm -v /root/.kube/config:/root/.kube/config fnndsc/pman-openshift pman_openshift.py --remove test
+  docker run --rm -v /root/.kube/config:/root/.kube/config fnndsc/pman-openshift pman_openshift.py --remove test -p myproject
 
 or from ``Python``:
 
 .. code-block:: python
 
-  byte_str = client.containers.run('fnndsc/pman-openshift',  'pman_openshift.py --remove test',
+  byte_str = client.containers.run('fnndsc/pman-openshift',  'pman_openshift.py --remove test -p myproject',
                                    volumes={'/root/.kube/config': {'bind': '/root/.kube/config', 'mode': 'rw'}},
                                    remove=True)
 
