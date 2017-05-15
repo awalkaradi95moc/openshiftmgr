@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import random
 import string
 import kubernetes
@@ -11,7 +11,8 @@ class OpenShiftManagerTests(unittest.TestCase):
     Test the OpenShiftManager's methods
     """
 
-    def setUp(self):
+    @patch('openshiftmgr.config.load_kube_config')
+    def setUp(self, mock_config):
         self.manager = OpenShiftManager()
         self.manager.get_openshift_client()
         self.job_name = 'job' + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(10))
@@ -26,6 +27,8 @@ class OpenShiftManagerTests(unittest.TestCase):
         mock_create.return_value = kubernetes.client.models.v1_job.V1Job()
         mock_get.return_value = kubernetes.client.models.v1_job.V1Job()
         self.manager.schedule(self.image, self.command, self.job_name, self.project)
+        mock_create.any_call()
+        #mock_create.assert_called_once() Available in 3.6
         job = self.manager.get_job(self.job_name, self.project)
         self.assertIsInstance(job, kubernetes.client.models.v1_job.V1Job)
         self.manager.remove(self.job_name, self.project)
