@@ -52,7 +52,7 @@ class OpenShiftManager(object):
         """
         Schedule a new job and returns the job object.
         """
-        job = """
+        job_str = """
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -70,8 +70,9 @@ spec:
               command: {command}
             restartPolicy: Never
 """.format(name=name, command=str(command.split(" ")), image=image)
-        job_yaml = yaml.load(job)
-        resp = self.kube_v1_batch_client.create_namespaced_job(namespace=project, body=job_yaml)
+        job_yaml = yaml.load(job_str)
+        job = self.kube_v1_batch_client.create_namespaced_job(namespace=project, body=job_yaml)
+        #TODO Handle errors
 
     def get_job(self, name, project):
         """

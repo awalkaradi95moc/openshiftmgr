@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import random
 import string
 import kubernetes
@@ -18,7 +19,12 @@ class OpenShiftManagerTests(unittest.TestCase):
         self.command = 'echo test'
         self.project = 'myproject'
 
-    def test_schedule(self):
+    @patch('kubernetes.client.apis.batch_v1_api.BatchV1Api.create_namespaced_job')
+    @patch('kubernetes.client.apis.batch_v1_api.BatchV1Api.read_namespaced_job')
+    @patch('kubernetes.client.apis.batch_v1_api.BatchV1Api.delete_namespaced_job')
+    def test_schedule(self, mock_create, mock_get, mock_delete):
+        mock_create.return_value = kubernetes.client.models.v1_job.V1Job()
+        mock_get.return_value = kubernetes.client.models.v1_job.V1Job()
         self.manager.schedule(self.image, self.command, self.job_name, self.project)
         job = self.manager.get_job(self.job_name, self.project)
         self.assertIsInstance(job, kubernetes.client.models.v1_job.V1Job)
