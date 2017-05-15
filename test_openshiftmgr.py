@@ -2,7 +2,7 @@ import unittest
 import random
 import string
 import kubernetes
-from pman_openshift import OpenShiftManager
+from openshiftmgr import OpenShiftManager
 
 
 class OpenShiftManagerTests(unittest.TestCase):

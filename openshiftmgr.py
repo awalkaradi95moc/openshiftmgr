@@ -1,11 +1,10 @@
 """
-OpenShift cluster manager module that provides functionality to schedule services as well as
+OpenShift cluster manager module that provides functionality to schedule jobs as well as
 manage their state in the cluster.
 """
 
 from argparse import ArgumentParser
 import configparser
-import json
 import yaml
 from kubernetes import client
 from openshift import client as o_client
@@ -82,7 +81,7 @@ spec:
 
     def remove(self, name, project):
         """
-        Remove a previously scheduled service.
+        Remove a previously scheduled job.
         """
         self.kube_v1_batch_client.delete_namespaced_job(name, project, {})
     def parse(self, args=None):
