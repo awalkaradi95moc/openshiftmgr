@@ -4,7 +4,6 @@ manage their state in the cluster.
 """
 
 from argparse import ArgumentParser
-import configparser
 import yaml
 from kubernetes import client
 from openshift import client as o_client
@@ -85,6 +84,7 @@ spec:
         Remove a previously scheduled job.
         """
         self.kube_v1_batch_client.delete_namespaced_job(name, project, {})
+
     def parse(self, args=None):
         """
         Parse the arguments passed to the manager and perform the appropriate action.
