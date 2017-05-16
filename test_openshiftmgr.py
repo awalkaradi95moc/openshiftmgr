@@ -26,13 +26,16 @@ class OpenShiftManagerTests(unittest.TestCase):
         job = self.manager.schedule(self.image, self.command, self.job_name, self.project)
         self.assertIsInstance(job, kubernetes.client.models.v1_job.V1Job)
         #mock_create.assert_called_once() Available in 3.6
-"""
-    def test_get_job(self):
-        service = self.openshift_client.services.create(self.image, self.command, name=self.job_name)
-        service1 = self.manager.get_service(self.job_name)
-        self.assertEqual(service, service1)
-        service.remove()
 
+    @patch('kubernetes.client.apis.batch_v1_api.BatchV1Api.read_namespaced_job')
+    def test_get_job(self, mock_get):
+        mock_get.return_value = kubernetes.client.models.v1_job.V1Job()
+        job = self.manager.get_job(self.job_name, self.project)
+        #mock_get.assert_called_once() Available in 3.6
+        mock_get.assert_any_call(self.job_name, self.project)
+        self.assertIsInstance(job, kubernetes.client.models.v1_job.V1Job)
+
+"""
     def test_remove(self):
         self.openshift_client.services.create(self.image, self.command, name=self.job_name)
         self.assertEqual(len(self.openshift_client.services.list()), 1)
