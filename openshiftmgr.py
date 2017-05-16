@@ -63,12 +63,24 @@ spec:
         metadata:
             name: {name}
         spec:
+            restartPolicy: Never
             containers:
             - name: {name}
               image: {image}
               command: {command}
-            restartPolicy: Never
 """.format(name=name, command=str(command.split(" ")), image=image)
+
+        if mountdir is not None:
+            job_str = job_str + """
+              volumeMounts:
+              - mountPath: {mountdir}
+                name: openshiftmgr-storage
+            volumes: 
+            - name: openshiftmgr-storage
+              hostPath:
+                path: {mountdir}
+""".format(mountdir=mountdir)
+
         job_yaml = yaml.load(job_str)
         job = self.kube_v1_batch_client.create_namespaced_job(namespace=project, body=job_yaml)
         print(yaml.dump(job))
@@ -120,5 +132,3 @@ spec:
 if __name__ == "__main__":
     manager = OpenShiftManager()
     manager.parse()
-
-
