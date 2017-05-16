@@ -4,7 +4,7 @@ FROM fnndsc/ubuntu-python3:latest
 MAINTAINER fnndsc "dev@babymri.org"
 
 ENV APPROOT="/usr/src/openshift"  VERSION="0.1"
-COPY ["openshiftmgr.py", "test_openshiftmgr.py", "requirements.txt", "${APPROOT}/"]
+COPY ["openshiftmgr.ini", "openshiftmgr.py", "test_openshiftmgr.py", "requirements.txt", "${APPROOT}/"]
 
 WORKDIR $APPROOT
 
