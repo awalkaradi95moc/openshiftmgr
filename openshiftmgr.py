@@ -72,7 +72,8 @@ spec:
 """.format(name=name, command=str(command.split(" ")), image=image)
         job_yaml = yaml.load(job_str)
         job = self.kube_v1_batch_client.create_namespaced_job(namespace=project, body=job_yaml)
-        #TODO Handle errors
+        print(yaml.dump(job))
+        return job
 
     def get_job(self, name, project):
         """
