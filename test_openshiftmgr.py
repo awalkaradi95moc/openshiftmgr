@@ -35,13 +35,11 @@ class OpenShiftManagerTests(unittest.TestCase):
         mock_get.assert_any_call(self.job_name, self.project)
         self.assertIsInstance(job, kubernetes.client.models.v1_job.V1Job)
 
-"""
-    def test_remove(self):
-        self.openshift_client.services.create(self.image, self.command, name=self.job_name)
-        self.assertEqual(len(self.openshift_client.services.list()), 1)
-        self.manager.remove(self.job_name)
-        self.assertEqual(len(self.openshift_client.services.list()), 0)
-"""
+    @patch('kubernetes.client.apis.batch_v1_api.BatchV1Api.delete_namespaced_job')
+    def test_remove(self, mock_delete):
+        job = self.manager.remove(self.job_name, self.project)
+        #mock_delete.assert_called_once() Available in 3.6
+        mock_delete.assert_any_call(self.job_name, self.project, {})
 
 if __name__ == '__main__':
     unittest.main()
