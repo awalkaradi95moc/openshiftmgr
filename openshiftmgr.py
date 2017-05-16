@@ -5,6 +5,8 @@ manage their state in the cluster.
 
 from argparse import ArgumentParser
 import yaml
+import configparser
+import os
 from kubernetes import client
 from openshift import client as o_client
 from openshift import config
@@ -23,7 +25,7 @@ class OpenShiftManager(object):
         group.add_argument("--state", help="print state of scheduled job",
                            metavar='name')
         parser.add_argument("--conffile", help="OpenShift cluster configuration file")
-        parser.add_argument("-p", "--project", help="The OpenShift project to create jobs in")
+        parser.add_argument("-p", "--project", help="The OpenShift project to create jobs in. Project can also be specified with openshiftmgr.ini or the OPENSHIFTMGR_PROJECT environment variable.")
         parser.add_argument("-i", "--image",
                             help="docker image for the scheduled job container")
         parser.add_argument("-c", "--command",
@@ -105,7 +107,11 @@ spec:
         # parse argument options
         options = self.parser.parse_args(args)
 
-        if not options.project:
+        config = configparser.ConfigParser()
+        config.read('openshiftmgr.ini')
+        project = options.project or os.environ.get('OPENSHIFTMGR_PROJECT') or config['DEFAULT']['OPENSHIFTMGR_PROJECT']
+
+        if not project:
             self.parser.error("-p/--project is required")
 
         # get the docker client
@@ -118,13 +124,13 @@ spec:
             if not (options.image and options.command):
                 self.parser.error("-s/--schedule requires -i/--image and -c/--command")
             self.schedule(options.image, options.command, options.schedule,
-                          options.project, options.mount)
+                          project, options.mount)
 
         if options.remove:
-            self.remove(options.remove, options.project)
+            self.remove(options.remove, project)
 
         if options.state:
-            job = self.get_job(options.state, options.project)
+            job = self.get_job(options.state, project)
             print(yaml.dump(job))
 
 
