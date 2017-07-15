@@ -5,6 +5,7 @@ manage their state in the cluster.
 
 from argparse import ArgumentParser
 import yaml
+import json
 import configparser
 import os
 from kubernetes import client
@@ -61,6 +62,7 @@ metadata:
 spec:
     parallelism: 1
     completions: 1
+    activeDeadlineSeconds: 3600
     template:
         metadata:
             name: {name}
@@ -75,7 +77,7 @@ spec:
         if mountdir is not None:
             job_str = job_str + """
               volumeMounts:
-              - mountPath: {mountdir}
+              - mountPath: /share
                 name: openshiftmgr-storage
             volumes: 
             - name: openshiftmgr-storage
@@ -131,7 +133,36 @@ spec:
 
         if options.state:
             job = self.get_job(options.state, project)
-            print(yaml.dump(job))
+            message = None
+            state = None
+            reason = None
+            if job.status.conditions:
+              for condition in job.status.conditions:
+                if condition.type == 'Failed' and condition.status == 'True':
+                  message = condition.message
+                  reason = condition.reason
+                  state = 'failed'
+                  break
+            if not state:
+              if job.status.completion_time and job.status.succeeded > 0:
+                message = 'finished'
+                state = 'complete'
+              elif job.status.active > 0:
+                message = str(job.status.active) + ' active'
+                state = 'running'
+              else:
+                message = 'inactive'
+                state = 'inactive'
+
+            ret_dict = {'Status': {'Message': message,
+                                   'State': state,
+                                   'Reason': reason,
+                                   'Active': job.status.active,
+                                   'Failed': job.status.failed,
+                                   'Succeeded': job.status.succeeded,
+                                   'StartTime': job.status.start_time,
+                                   'CompletionTime': job.status.completion_time}}
+            print(json.dumps(ret_dict))
 
 
 # ENTRYPOINT
