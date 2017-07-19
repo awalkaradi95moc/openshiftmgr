@@ -68,9 +68,13 @@ spec:
             name: {name}
         spec:
             restartPolicy: Never
+            nodeSelector:
+                region: radiology
             containers:
             - name: {name}
               image: {image}
+              securityContext:
+                  privileged: true
               command: {command}
 """.format(name=name, command=str(command.split(" ")), image=image)
 
